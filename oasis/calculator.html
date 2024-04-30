@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f8f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .calculator {
+      width: 320px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background-color: #f0f0f0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .display {
+      font-size: 36px;
+      background-color: #e6e6e6;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: right;
+      margin-bottom: 15px;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .button {
+      padding: 20px;
+      font-size: 24px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border: none;
+      outline: none;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .button:hover {
+      background-color: #e6e6e6;
+      transform: translateY(-2px); /* Move button up slightly on hover */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    .operator {
+      background-color: #f78c6f;
+      color: #fff;
+      box-shadow: 0 4px 8px rgba(247, 140, 111, 0.3);
+    }
+    .operator:hover {
+      background-color: #e67153;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+      <button class="button" data-value="7">7</button>
+      <button class="button" data-value="8">8</button>
+      <button class="button" data-value="9">9</button>
+      <button class="button operator" data-value="+">+</button>
+      <button class="button" data-value="4">4</button>
+      <button class="button" data-value="5">5</button>
+      <button class="button" data-value="6">6</button>
+      <button class="button operator" data-value="-">-</button>
+      <button class="button" data-value="1">1</button>
+      <button class="button" data-value="2">2</button>
+      <button class="button" data-value="3">3</button>
+      <button class="button operator" data-value="*">*</button>
+      <button class="button" data-value="0">0</button>
+      <button class="button" data-value=".">.</button>
+      <button class="button operator" data-value="=">=</button>
+      <button class="button operator" data-value="/">/</button>
+      <button class="button" data-value="C">C</button>
+      <button class="button" data-value="DEL">DEL</button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    let currentValue = '';
+    let storedValue = '';
+    let operator = '';
+
+    function updateDisplay(value) {
+      if (value === '.') {
+        if (currentValue.includes('.')) return;
+        if (currentValue === '') currentValue = '0';
+      }
+      currentValue += value;
+      display.textContent = currentValue;
+    }
+
+    function clearDisplay() {
+      currentValue = '';
+      display.textContent = '0';
+    }
+
+    function deleteLastCharacter() {
+      currentValue = currentValue.slice(0, -1);
+      display.textContent = currentValue || '0';
+    }
+
+    function handleOperator(op) {
+      if (operator && currentValue !== '') {
+        compute();
+      }
+      storedValue = currentValue;
+      operator = op;
+      currentValue = '';
+    }
+
+    function compute() {
+      const num1 = parseFloat(storedValue);
+      const num2 = parseFloat(currentValue);
+      if (isNaN(num1) || isNaN(num2)) {
+        display.textContent = 'Error';
+        return;
+      }
+      let result;
+      switch (operator) {
+        case '+':
+          result = num1 + num2;
+          break;
+        case '-':
+          result = num1 - num2;
+          break;
+        case '*':
+          result = num1 * num2;
+          break;
+        case '/':
+          if (num2 === 0) {
+            display.textContent = 'Error';
+            return;
+          }
+          result = num1 / num2;
+          break;
+        default:
+          return;
+      }
+      currentValue = result.toString();
+      display.textContent = currentValue;
+      operator = '';
+    }
+
+    document.querySelectorAll('.button').forEach(button => {
+      button.addEventListener('click', () => {
+        const value = button.dataset.value;
+        if (!isNaN(parseFloat(value)) || value === '.') {
+          updateDisplay(value);
+        } else if (value === 'C') {
+          clearDisplay();
+        } else if (value === 'DEL') {
+          deleteLastCharacter();
+        } else if (value === '+' || value === '-' || value === '*' || value === '/') {
+          handleOperator(value);
+        } else if (value === '=') {
+          compute();
+        }
+      });
+    });
+
+    document.addEventListener('keydown', event => {
+      const key = event.key;
+      if ((key >= '0' && key <= '9') || key === '.' || key === 'Enter' || key === '+' || key === '-' || key === '*' || key === '/') {
+        event.preventDefault();
+        const button = document.querySelector(`[data-value="${key}"]`);
+        if (button) button.click();
+      } else if (key === 'Backspace') {
+        event.preventDefault();
+        const delButton = document.querySelector('[data-value="DEL"]');
+        if (delButton) delButton.click();
+      } else if (key === 'Escape') {
+        event.preventDefault();
+        const clearButton = document.querySelector('[data-value="C"]');
+        if (clearButton) clearButton.click();
+      }
+    });
+  </script>
+</body>
+</html>
